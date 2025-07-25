@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import * as admin from 'firebase-admin';
 import { ServiceAccount } from 'firebase-admin';
 
@@ -61,3 +62,4 @@ export const storage = firebaseInitialized ? admin.storage() : null;
 const finalIsTestMode = isTestMode || (global as any).isTestMode;
 export { firebaseInitialized, finalIsTestMode as isTestMode };
 export default admin;
+

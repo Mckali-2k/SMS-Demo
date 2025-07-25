@@ -98,15 +98,28 @@ async getUserById(uid: string): Promise<User | null> {
 
       if (querySnapshot.empty) {
         return null;
-      }
 
-      const doc = querySnapshot.docs[0];
-      return { uid: doc.id, ...doc.data() } as User;
-    } catch (error) {
-      console.error('Error getting user by email:', error);
-      throw new Error('Failed to get user');
+      }
+      console.log('Test mode: getUserByEmail - no user found for', email);
+      return null;
     }
+
+    const querySnapshot = await this.usersCollection
+      .where('email', '==', email)
+      .limit(1)
+      .get();
+
+    if (querySnapshot.empty) {
+      return null;
+    }
+
+    const doc = querySnapshot.docs[0];
+    return { uid: doc.id, ...doc.data() } as User;
+  } catch (error) {
+    console.error('Error getting user by email:', error);
+    throw new Error('Failed to get user');
   }
+}
 
 // Update user
 async updateUser(uid: string, updateData: Partial<User>): Promise<User> {
