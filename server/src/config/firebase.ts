@@ -18,30 +18,34 @@ if (!isTestMode) {
     'FIREBASE_CLIENT_EMAIL'
   ];
 
-  for (const envVar of requiredEnvVars) {
-    if (!process.env[envVar]) {
-      throw new Error(`Missing required environment variable: ${envVar}`);
-    }
-  }
+  const missingVars = requiredEnvVars.filter(envVar => !process.env[envVar]);
+  
+  if (missingVars.length > 0) {
+    console.log(`⚠️  Missing Firebase environment variables: ${missingVars.join(', ')}`);
+    console.log('⚠️  Running in test mode - Firebase disabled');
+    // Override test mode flag
+    (global as any).isTestMode = true;
+  } else {
 
-  const serviceAccount: ServiceAccount = {
-    projectId: process.env.FIREBASE_PROJECT_ID!,
-    privateKey: process.env.FIREBASE_PRIVATE_KEY!.replace(/\\n/g, '\n'),
-    clientEmail: process.env.FIREBASE_CLIENT_EMAIL!,
-  };
+    const serviceAccount: ServiceAccount = {
+      projectId: process.env.FIREBASE_PROJECT_ID!,
+      privateKey: process.env.FIREBASE_PRIVATE_KEY!.replace(/\\n/g, '\n'),
+      clientEmail: process.env.FIREBASE_CLIENT_EMAIL!,
+    };
 
-  // Initialize Firebase Admin SDK
-  if (!admin.apps.length) {
-    try {
-      admin.initializeApp({
-        credential: admin.credential.cert(serviceAccount),
-        projectId: process.env.FIREBASE_PROJECT_ID,
-      });
-      firebaseInitialized = true;
-      console.log('✅ Firebase initialized successfully');
-    } catch (error) {
-      console.error('❌ Firebase initialization failed:', error);
-      throw error;
+    // Initialize Firebase Admin SDK
+    if (!admin.apps.length) {
+      try {
+        admin.initializeApp({
+          credential: admin.credential.cert(serviceAccount),
+          projectId: process.env.FIREBASE_PROJECT_ID,
+        });
+        firebaseInitialized = true;
+        console.log('✅ Firebase initialized successfully');
+      } catch (error) {
+        console.error('❌ Firebase initialization failed:', error);
+        throw error;
+      }
     }
   }
 } else {
@@ -53,5 +57,7 @@ export const auth = firebaseInitialized ? admin.auth() : null;
 export const firestore = firebaseInitialized ? admin.firestore() : null;
 export const storage = firebaseInitialized ? admin.storage() : null;
 
-export { firebaseInitialized, isTestMode };
+// Export test mode flag, checking for global override
+const finalIsTestMode = isTestMode || (global as any).isTestMode;
+export { firebaseInitialized, finalIsTestMode as isTestMode };
 export default admin;
