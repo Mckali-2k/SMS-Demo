@@ -76,16 +76,29 @@ async getUserById(uid: string): Promise<User | null> {
   }
 }
 
-// Get user by email
-async getUserByEmail(email: string): Promise<User | null> {
-  try {
-    if (isTestMode || !this.usersCollection) {
-      // In test mode, search the in-memory store
-      for (const user of this.testUsers.values()) {
-        if (user.email === email) {
-          console.log('Test mode: getUserByEmail found user for', email);
-          return user;
+  // Get user by email
+  async getUserByEmail(email: string): Promise<User | null> {
+    try {
+      if (isTestMode || !this.usersCollection) {
+        // In test mode, search the in-memory store
+        for (const user of this.testUsers.values()) {
+          if (user.email === email) {
+            console.log('Test mode: getUserByEmail found user for', email);
+            return user;
+          }
         }
+        console.log('Test mode: getUserByEmail - no user found for', email);
+        return null;
+      }
+
+      const querySnapshot = await this.usersCollection
+        .where('email', '==', email)
+        .limit(1)
+        .get();
+
+      if (querySnapshot.empty) {
+        return null;
+
       }
       console.log('Test mode: getUserByEmail - no user found for', email);
       return null;
@@ -112,17 +125,35 @@ async getUserByEmail(email: string): Promise<User | null> {
 async updateUser(uid: string, updateData: Partial<User>): Promise<User> {
   try {
     if (isTestMode || !this.usersCollection) {
-      console.log('Test mode: User update simulated');
-      // Return mock updated user
-      return {
-        uid,
-        email: 'test@example.com',
-        displayName: updateData.displayName || 'Test User',
-        role: updateData.role || UserRole.STUDENT,
-        isActive: true,
-        createdAt: new Date(),
+      console.log('Test mode: User update simulated for', uid);
+      
+      // Get existing user or create a default one
+      let existingUser = this.testUsers.get(uid);
+      if (!existingUser) {
+        existingUser = {
+          uid,
+          email: 'test@example.com',
+          displayName: 'Test User',
+          role: UserRole.STUDENT,
+          isActive: true,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        };
+      }
+      
+      // Update the user with new data
+      const updatedUser: User = {
+        ...existingUser,
+        ...updateData,
+        uid, // Ensure UID doesn't change
         updatedAt: new Date()
       };
+      
+      // Store the updated user
+      this.testUsers.set(uid, updatedUser);
+      console.log('Test mode: User updated:', updatedUser);
+      
+      return updatedUser;
     }
 
     // Filter out undefined values

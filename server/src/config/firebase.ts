@@ -28,7 +28,7 @@ if (!isTestMode) {
     (global as any).isTestMode = true;
   } else {
 
-const serviceAccount: ServiceAccount = {
+    const serviceAccount: ServiceAccount = {
       projectId: process.env.FIREBASE_PROJECT_ID!,
       privateKey: process.env.FIREBASE_PRIVATE_KEY!.replace(/\\n/g, '\n'),
       clientEmail: process.env.FIREBASE_CLIENT_EMAIL!,
@@ -61,7 +61,5 @@ export const storage = firebaseInitialized ? admin.storage() : null;
 // Export test mode flag, checking for global override
 const finalIsTestMode = isTestMode || (global as any).isTestMode;
 export { firebaseInitialized, finalIsTestMode as isTestMode };
-
-/* export { firebaseInitialized, isTestMode };
- */export default admin;
+export default admin;
 
