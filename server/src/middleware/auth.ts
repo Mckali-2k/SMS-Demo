@@ -68,27 +68,27 @@ if (isTestMode || !auth || !firestore) {
 // Verify the Firebase token for all other cases
 const decodedToken = await auth.verifyIdToken(token);
     
-    // Get user data from Firestore
-    const userDoc = await firestore.collection('users').doc(decodedToken.uid).get();
-    
-    let userData = null;
-    let userRole = UserRole.STUDENT; // Default role for new users
-    
-    if (userDoc.exists) {
-      userData = userDoc.data();
-      userRole = userData?.role || UserRole.STUDENT;
-    } else {
-      // User exists in Firebase Auth but not in Firestore yet
-      // This is expected during initial profile creation
-      console.log(`User ${decodedToken.uid} not found in Firestore, allowing for profile creation`);
-    }
-    
-    // Attach user info to request
-    req.user = {
-      uid: decodedToken.uid,
-      email: decodedToken.email || '',
-      role: userRole
-    };
+// Get user data from Firestore
+const userDoc = await firestore.collection('users').doc(decodedToken.uid).get();
+
+let userData = null;
+let userRole = UserRole.STUDENT; // Default role for new users
+
+if (userDoc.exists) {
+  userData = userDoc.data();
+  userRole = userData?.role || UserRole.STUDENT;
+} else {
+  // User exists in Firebase Auth but not in Firestore yet
+  // This is expected during initial profile creation
+  console.log(`User ${decodedToken.uid} not found in Firestore, allowing for profile creation`);
+}
+
+// Attach user info to request
+req.user = {
+  uid: decodedToken.uid,
+  email: decodedToken.email || '',
+  role: userRole
+};
 
     next();
   } catch (error) {
