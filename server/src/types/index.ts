@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Request } from 'express';
 
 // User role enumeration
@@ -213,6 +212,3 @@ export interface AdminDashboardStats {
   totalEnrollments: number;
   activeUsers: number;
 }
-
-// Add to existing exports
-export * from './course';

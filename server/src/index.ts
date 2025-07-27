@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 // Load environment variables first, before any other imports
 import dotenv from 'dotenv';
 dotenv.config();
