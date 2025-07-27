@@ -45,7 +45,9 @@ router.get('/test', (req, res) => {
   });
 });
 
-// Public routes
+// Public routes (no authentication required)
+router.get('/public', validatePagination, courseController.getAllCourses);
+router.get('/public/:courseId', courseController.getCourseById);
 router.get('/search', validatePagination, courseController.searchCourses);
 router.get('/', validatePagination, courseController.getAllCourses);
 

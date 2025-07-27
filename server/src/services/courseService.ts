@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { firestore, isTestMode } from '../config/firebase';
 import { Course, Lesson, Assignment, Enrollment, UserRole } from '../types';
 
@@ -7,9 +8,39 @@ class CourseService {
   private lessonsCollection = firestore?.collection('lessons');
   private assignmentsCollection = firestore?.collection('assignments');
 
+  // In-memory store for test mode
+  private testCourses: Map<string, Course> = new Map();
+  private testEnrollments: Map<string, Enrollment> = new Map();
+
   // Create a new course
   async createCourse(courseData: Partial<Course>, instructorId: string, instructorName: string): Promise<Course> {
     try {
+      if (isTestMode || !this.coursesCollection) {
+        console.log('Test mode: Course creation simulated');
+        const newCourse: Course = {
+          id: `course-${Date.now()}`,
+          title: courseData.title!,
+          description: courseData.description!,
+          syllabus: courseData.syllabus || '',
+          instructor: instructorId,
+          instructorName,
+          category: courseData.category || 'General',
+          duration: courseData.duration || 8,
+          maxStudents: courseData.maxStudents || 50,
+          enrolledStudents: [],
+          lessons: [],
+          assignments: [],
+          isActive: true,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          ...courseData
+        };
+        
+        this.testCourses.set(newCourse.id, newCourse);
+        console.log('Test course stored:', newCourse);
+        return newCourse;
+      }
+
       const courseDoc = {
         ...courseData,
         instructor: instructorId,
@@ -34,6 +65,12 @@ class CourseService {
   // Get course by ID
   async getCourseById(courseId: string): Promise<Course | null> {
     try {
+      if (isTestMode || !this.coursesCollection) {
+        const testCourse = this.testCourses.get(courseId);
+        console.log('Test mode: getCourseById for', courseId, 'found:', !!testCourse);
+        return testCourse || null;
+      }
+
       const courseDoc = await this.coursesCollection.doc(courseId).get();
       
       if (!courseDoc.exists) {
@@ -297,7 +334,9 @@ class CourseService {
       }
 
       // Create enrollment record
+      const enrollmentId = `enrollment-${Date.now()}`;
       const enrollmentData = {
+        id: enrollmentId,
         studentId,
         courseId,
         enrolledAt: new Date(),
@@ -306,6 +345,17 @@ class CourseService {
         lastAccessedAt: new Date(),
         status: 'active' as const
       };
+
+      if (isTestMode || !this.enrollmentsCollection) {
+        console.log('Test mode: Enrollment simulated');
+        this.testEnrollments.set(enrollmentId, enrollmentData);
+        
+        // Update course's enrolled students
+        course.enrolledStudents.push(studentId);
+        this.testCourses.set(courseId, course);
+        
+        return enrollmentData;
+      }
 
       const enrollmentRef = await this.enrollmentsCollection.add(enrollmentData);
 

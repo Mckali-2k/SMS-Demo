@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 const API_BASE_URL = 'http://localhost:5000';
 
 // API Response types
@@ -30,7 +31,7 @@ export interface Course {
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
-  syllabus?: string;
+  syllabus: string;
 }
 
 // User types
@@ -195,6 +196,26 @@ class ApiClient {
 
     const query = searchParams.toString() ? `?${searchParams.toString()}` : '';
     return this.request<Course[]>(`/api/courses/instructor/my-courses${query}`);
+  }
+  // Public course methods
+  async getPublicCourses(params?: {
+    page?: number;
+    limit?: number;
+    category?: string;
+    search?: string;
+  }): Promise<ApiResponse<Course[]>> {
+    const searchParams = new URLSearchParams();
+    if (params?.page) searchParams.append('page', params.page.toString());
+    if (params?.limit) searchParams.append('limit', params.limit.toString());
+    if (params?.category) searchParams.append('category', params.category);
+    if (params?.search) searchParams.append('search', params.search);
+
+    const query = searchParams.toString() ? `?${searchParams.toString()}` : '';
+    return this.request<Course[]>(`/api/courses/public${query}`);
+  }
+
+  async getPublicCourseById(courseId: string): Promise<ApiResponse<Course>> {
+    return this.request<Course>(`/api/courses/public/${courseId}`);
   }
 }
 
